@@ -1,7 +1,15 @@
+from turtle import color
+from unicodedata import name
 from django.shortcuts import redirect, render, HttpResponse
 from gltf import load_model
 from matplotlib import ticker
+from sqlalchemy import values
 from .models import *
+import json
+
+import plotly.graph_objects as go
+from plotly.offline import plot
+import plotly.express as px
 
 import numpy as np
 import pandas as pd
@@ -43,6 +51,8 @@ def update_company_info(request):
     data = [yf.Ticker(ticker).info for ticker in tickers]
     stocks = dict(zip(tickers, data))
     df = pd.DataFrame.from_dict(stocks)
+    df = df.reset_index()
+    print(df)
     path = os.getcwd()+f'\\static\\database\\company_info.csv'
     df.to_csv(path, index=False)
     return redirect('/')
@@ -51,9 +61,6 @@ def update(request):
     name = ['HDFC.NS','TCS.NS','RELIANCE.NS','SBIN.NS','TATAMOTORS.NS']
     for x in name:
         postdata(x)
-        '''file = os.getcwd()+f'\\static\\database\\standard\\{x}.csv'
-        df = pd.read_csv(file)
-        print(df.tail(1))'''
     return redirect('/')
 
 def livedata():
@@ -80,16 +87,69 @@ def market(request):
     dic, frame = livedata()
     return render(request, 'market.html', {'company': dic, 'data' : frame})
 
+def candlestick(df):
+    fig = go.Figure(
+        data = [
+            go.Candlestick(
+                x = df['Date'],
+                high = df['High'],
+                low = df['Low'],
+                open = df['Open'],
+                close = df['Close'],
+                name = 'Candlestick'
+            ),
+            go.Line(
+                x=df['Date'], 
+                y=(df['Open']+df['Close'])/2,
+                marker_color='blue',
+                name = 'Average Buy'
+            )
+        ]
+    )
+    fig.update_layout(
+        height=600,
+        margin=dict(l=50,r=50,b=100,t=100),
+        paper_bgcolor="LightSteelBlue",
+    )
+
+    candlestick_div = plot(fig, output_type='div')
+    return candlestick_div
+
+def linegraph(df):
+    fig = px.line(df, x='Date', y='Close')
+    fig = fig.to_html()
+    return fig
+
 def info(request):
     dic, frame= livedata()
-    #file = os.getcwd()+f'\\static\\database\\company_info.csv'
-    #df = pd.read_csv(file)
+    file = os.getcwd()+f'\\static\\database\\company_info.csv'
+    data = pd.read_csv(file)
     try:
         value = request.POST['company']
     except:
         value = 'HDFC.NS'
+    try:
+        start = request.POST['start']
+        end = request.POST['end']
+    except:
+        start = '2020-01-01'
+        end = datetime.datetime.now()
 
     file = os.getcwd()+f'\\static\\database\\standard\\{value}.csv'
+    df = pd.read_csv(file)
+    start = datetime.datetime.strptime(start, '%Y-%m-%d')
+    df['Date'] = pd.to_datetime(df['Date'])
+    df = df[(df['Date'] >= start) & (df['Date'] <= end)]
+
+    json_records = df.reset_index().to_json(orient ='records')
+    bet_data = []
+    bet_data = json.loads(json_records)
+    for d in bet_data:
+        d['Date'] = datetime.datetime.fromtimestamp(d['Date']/1000.0).strftime('%d-%m-%Y')
+
+
+
+    '''file = os.getcwd()+f'\\static\\database\\standard\\{value}.csv'
     data = pd.read_csv(file)
     training_data = pd.DataFrame(data['Close'][0:int(len(data)*0.75)])
     testing_data = pd.DataFrame(data['Close'][int(len(data)*0.75) : int(len(data))])
@@ -124,9 +184,22 @@ def info(request):
     y_predict = y_predict * scale_factor
     y_test = y_test * scale_factor
     print(y_predict)
-    
-    #info = df.set_index('symbol').T.to_dict('dict')
-    return render(request, 'info.html', {'company': dic, 'value': value})
+    '''
+
+    data.index = data['index']
+    del data['index']
+    data = data.to_dict()
+    data = data[value]
+    return render(request, 'info.html', {
+        'company': dic, 
+        'value': value, 
+        'data': data, 
+        'df': bet_data, 
+        'candlestick': candlestick(df),
+        'figure' : linegraph(df)
+        }
+    )
+
 
 
 '''model = Sequential()

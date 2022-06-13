@@ -18,8 +18,18 @@
 
 <body>
 
+    <style>
+        .beta {display: block; overflow: auto; height: 500px; }
+        .beta th { position: sticky; top: 0; z-index: 1; padding-bottom: 10px; padding-top: 10px; background:honeydew;}
+
+        .beta tbody {
+            width: 100%;
+            overflow: auto;
+        }
+    </style>
+
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-sm bg-dark navbar-dark py-3">
+    <nav style="position: fixed; top: 0; z-index: 1; width: 100%; padding-top: 60px; overflow: hidden;" class="navbar navbar-expand-sm bg-dark navbar-dark py-3">
         <div class="container">
             <a href="#" class="navbar-brand">Stock Market Price Prediction</a>
 
@@ -106,7 +116,7 @@
             </div>
         </section>
     </marquee>
-    
+
     <!-- Company Data -->
     <section class="p-4 p-lg-0 pt-lg-3 text-center text-sm-start" style="background-color:cornsilk">
         <form action="info" method="post" enctype="multipart/form-data">
@@ -136,11 +146,196 @@
         </form>
     </section>
 
-    {% if value is not 1 %}
-        
-            
+    <!-- Company Info -->
+    <section id="company" class="p-1 back">
+        <div class="container">
+            {% if data %}
+            <table width="100%">
+                <div>
+                    <p></p>
+                    <tr>
+                        <td>
+                            <h3>Company Info</h3>
+                        </td>
+                        <td style="padding-left: 50%;"><img src="{{data.logo_url}}"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <hr>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><b>Company</b></td>
+                        <td><b>{{data.longName}}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Sumbol</b></td>
+                        <td><b>{{data.symbol}}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Sector</b></td>
+                        <td><b>{{data.sector}}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Website</b></td>
+                        <td><b><a href="{{data.website}}">{{data.website}}</a></b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Total Revenue</b></td>
+                        <td><b>₹{{data.totalRevenue }}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Employees</b></td>
+                        <td><b>{{data.fullTimeEmployees }}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Address</b></td>
+                        <td><b>{{data.address2}}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Fax</b></td>
+                        <td><b>{{data.fax}}</b></td>
+                    </tr>
+                </div>
+                <div>
+            </table>
+            <p> </p>
+            <p> </p>
+            <table width="100%">
+                <h3>Statistics</h3>
+                <hr>
+                <tr>
+                    <td><b>Previous Close</b></td>
+                    <td><b>₹{{data.previousClose }}</b></td>
+                    <td><b>Daily Volume</b></td>
+                    <td><b>{{data.volume }}</b></td>
+                </tr>
+                <tr>
+                    <td><b>Price</b></td>
+                    <td><b>₹{{data.currentPrice }}</b></td>
+                    <td><b>50Day Average</b></td>
+                    <td><b>₹{{data.fiftyDayAverage }}</b></td>
+                </tr>
+                <tr>
+                    <td><b>Open</b></td>
+                    <td><b>₹{{data.open }}</b></td>
+                    <td><b>Revenue Growth</b></td>
+                    <td><b>{{data.revenueGrowth }}%</b></td>
+                </tr>
+                <tr>
+                    <td><b>High</b></td>
+                    <td><b>₹{{data.dayHigh }}</b></td>
+                    <td><b>52Week High</b></td>
+                    <td><b>₹{{data.fiftyTwoWeekHigh }}</b></td>
+                </tr>
+                <tr>
+                    <td><b>Low</b></td>
+                    <td><b>₹{{data.dayLow }}</b></td>
+                    <td><b>52Week Low</b></td>
+                    <td><b>₹{{data.fiftyTwoWeekLow }}</b></td>
+                </tr>
+                <tr>
+                    <td><b>Market Cap</b></td>
+                    <td><b>₹{{data.marketCap }}</b></td>
+                    <td><b>52Week Change</b></td>
+                    <td><b>{{data.52WeekChange }}</b></td>
+                </tr>
+                <tr>
+                    <td>
+                        <p></p>
+                    </td>
+                </tr>
+        </div>
+        </table>
+        {% else %}
+        <h1 style="text-align: center;"> Company Details Not Found :(</h1>
+        {% endif %}
+        </div>
+    </section>
 
-    {% endif %}
+    <!-- Company Database -->
+
+    <!-- Company Data -->
+    <section class="p-4 p-lg-0 pt-lg-3 text-center text-sm-start" style="background-color:cornsilk">
+        <form action="info" method="post" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <div class="row card-body text-center">
+                <h3>Choose Period</h3>
+                <div class="row">
+                    <div class="col-md">
+                        <h3>Start Date</h3>
+                    </div>
+                    <div class="col-md drop_downsize">
+                        <input type="date" id="start" name="start">
+                    </div>
+                    <div class="col-md">
+                        <h3>End Date</h3>
+                    </div>
+                    <div class="col-md drop_downsize">
+                        <input type="date" id="end" name="end">
+                    </div>
+                </div>
+                <p></p>
+                <div class="col-md column">
+                    <button type="submit" class="btn btn-primary btn-lg">Get Data</button>
+                </div>
+
+        </form>
+    </section>
+
+    <!-- Markets Section -->
+    <section id="book" class="p-3 back">
+        <p>
+            <hr>
+        </p>
+        <div class="beta">
+            <table width="100%">
+                <div>
+                    <tr style="color:orangered; z-index:1;">
+                        <th>Date</th>
+                        <th>Open</th>
+                        <th>Close</th>
+                        <th>High</th>
+                        <th>Low</th>
+                        <th>Change</th>
+                        <th>Volume</th>
+                    </tr>
+                    <tr>
+                        <td colspan="100%">
+                            <hr>
+                        </td>
+                    </tr>
+                </div>
+                <div>
+                    {% if df %}
+                    {% for ind in df %}
+                    <tr>
+                        <td>{{ ind.Date }}</td>
+                        <td>{{ ind.Open }}</td>
+                        <td>{{ ind.Close }}</td>
+                        <td>{{ ind.High }}</td>
+                        <td>{{ ind.Low }}</td>
+                        <td>{{ ind.Volume }}</td>
+                        <td>{{ ind.change }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </table>
+        </div>
+        <p>
+            <hr>
+        </p>
+
+
+    </section>
+
+    <div style="width: 100%;">
+        {{ candlestick | safe}}
+    </div>
+    <p></p>
 
 
     <!-- Copyright Section-->
