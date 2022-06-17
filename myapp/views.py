@@ -45,7 +45,6 @@ def update_company_info(request):
     stocks = dict(zip(tickers, data))
     df = pd.DataFrame.from_dict(stocks)
     df = df.reset_index()
-    print(df)
     path = os.getcwd()+f'\\static\\database\\company_info.csv'
     df.to_csv(path, index=False)
     return redirect('/')
@@ -259,7 +258,6 @@ def predict(request):
 
     live = yf.download(value, period='1d', interval='1m', threads=True)
     live = live.reset_index()
-    print(live.columns)
     
     return render(request, 'predict.html',{
             'company': dic,
