@@ -1,4 +1,6 @@
 from django.shortcuts import redirect, render
+
+from SMP.settings import BASE_DIR
 from .models import *
 import json
 from django.core.files.storage import FileSystemStorage
@@ -116,7 +118,7 @@ def static_linegraph(df):
 
 def info(request):
     dic, frame= livedata()
-    file = os.getcwd()+f'/static/company_info.csv'
+    file = os.path.join(BASE_DIR , 'static/company_info.csv')
     data = pd.read_csv(file)
     try:
         value = request.POST['company']
@@ -129,7 +131,7 @@ def info(request):
         start = '2022-01-01'
         end = datetime.datetime.now()
 
-    file = os.getcwd()+f'\\static\\standard\\{value}.csv'
+    file = os.path.join(BASE_DIR, f'static/standard/{value}.csv')
     std_df = pd.read_csv(file)
     start = datetime.datetime.strptime(start, '%Y-%m-%d')
     std_df['Date'] = pd.to_datetime(std_df['Date'])
