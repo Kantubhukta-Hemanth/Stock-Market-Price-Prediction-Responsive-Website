@@ -33,7 +33,7 @@ def postdata(name):
     df['Adj Close'] = df['Adj Close'].round(decimals=4)
     df['Prev Close'] = df['Prev Close'].round(decimals=4)
     df['change'] = df['change'].round(decimals=4)
-    path = os.getcwd()+f'\\media\\standard\\{name}.csv'
+    path = os.getcwd()+f'\\static\\standard\\{name}.csv'
     df.to_csv(path, index=False)
     
 
@@ -46,7 +46,7 @@ def update_company_info(request):
     stocks = dict(zip(tickers, data))
     df = pd.DataFrame.from_dict(stocks)
     df = df.reset_index()
-    path = os.getcwd()+f'\\media\\company_info.csv'
+    path = os.getcwd()+f'\\static\\company_info.csv'
     df.to_csv(path, index=False)
     return redirect('/')
 
@@ -116,7 +116,7 @@ def static_linegraph(df):
 
 def info(request):
     dic, frame= livedata()
-    file = os.getcwd()+f'\\media\\company_info.csv'
+    file = os.getcwd()+f'\\static\\company_info.csv'
     data = pd.read_csv(file)
     try:
         value = request.POST['company']
@@ -129,7 +129,7 @@ def info(request):
         start = '2022-01-01'
         end = datetime.datetime.now()
 
-    file = os.getcwd()+f'\\media\\standard\\{value}.csv'
+    file = os.getcwd()+f'\\static\\standard\\{value}.csv'
     std_df = pd.read_csv(file)
     start = datetime.datetime.strptime(start, '%Y-%m-%d')
     std_df['Date'] = pd.to_datetime(std_df['Date'])
@@ -198,7 +198,7 @@ def predict(request):
         value = request.POST['company']
     except:
         value = 'HDFC.NS'
-    file = os.getcwd()+f'\\media\\standard\\{value}.csv'
+    file = os.getcwd()+f'\\static\\standard\\{value}.csv'
     df = pd.read_csv(file)
     training_data = pd.DataFrame(df['Close'][0:int(len(df)*0.70)])
     testing_data = pd.DataFrame(df['Close'][int(len(df)*0.70) : int(len(df))])
@@ -214,7 +214,7 @@ def predict(request):
         y_train.append(train_data_array[i, 0])
     x_train, y_train = np.array(x_train), np.array(y_train)
 
-    path = os.getcwd()+f'\\media\\models\\{value[0:-3]}.h5'
+    path = os.getcwd()+f'\\static\\models\\{value[0:-3]}.h5'
     model = load_model(path)
     last_100_days = training_data.tail(100)
     final_df = last_100_days.append(testing_data, ignore_index=True)
@@ -244,14 +244,14 @@ def predict(request):
     except:
         start = '2020-01-01'
         end = datetime.datetime.now()
-    file = os.getcwd()+f'\\media\\company_info.csv'
+    file = os.getcwd()+f'\\static\\company_info.csv'
     data = pd.read_csv(file)
     data.index = data['index']
     del data['index']
     data = data.to_dict()
     data = data[value]
 
-    file = os.getcwd()+f'\\media\\standard\\{value}.csv'
+    file = os.getcwd()+f'\\static\\standard\\{value}.csv'
     std_df = pd.read_csv(file)
     start = datetime.datetime.strptime(start, '%Y-%m-%d')
     std_df['Date'] = pd.to_datetime(std_df['Date'])
