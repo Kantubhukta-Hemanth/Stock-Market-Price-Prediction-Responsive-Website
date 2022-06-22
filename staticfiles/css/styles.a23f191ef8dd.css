@@ -1,0 +1,41 @@
+@media(min-width:768px) {
+    .news-input {
+        width: 50%;
+    }
+}
+
+.dark-mode {
+    background-color: black;
+    color: white;
+}
+
+.hide-border {
+    border: none;
+}
+
+.drop_downsize {
+    font-size: 25px;
+    width: 230px;
+}
+
+.desc_image {
+    background-size: 100% auto;
+    padding: 0;
+    padding-top: 35%;
+    background-position: center center;
+    max-width: 100%;
+    background-repeat: no-repeat;
+    
+}
+
+.align_right {
+    text-align: right;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-style: oblique;
+    color:firebrick;
+}
+
+.align_center {
+        padding:0.3em;
+        text-align: center;
+}
