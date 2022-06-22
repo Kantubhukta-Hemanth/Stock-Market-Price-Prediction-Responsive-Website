@@ -116,7 +116,7 @@ def static_linegraph(df):
 
 def info(request):
     dic, frame= livedata()
-    file = os.getcwd()+f'\\static\\company_info.csv'
+    file = os.getcwd()+f'/static/company_info.csv'
     data = pd.read_csv(file)
     try:
         value = request.POST['company']
