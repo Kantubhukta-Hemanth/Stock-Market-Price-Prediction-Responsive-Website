@@ -1,0 +1,455 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <!-- <link rel="stylesheet" href="style.css"> -->
+    <title>Stock Market Price Prediction</title>
+    <script src="{% static 'js/javascript.js' %}" language="javascript"></script>
+    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+</head>
+
+<body>
+
+    <script>
+        var keyword = JSON.parse('{{ keywords | safe }}');
+
+        function showSuggestions() {
+            //var tickers = JSON.parse("{{ tickers | safe }}");
+            var input = document.getElementById("searchInput").value;
+            suggestions = [];
+
+            for (var i = 0; i < keyword.length; i++) {
+                key = keyword[i]
+                if (key.toLowerCase().includes(input.toLowerCase())) {
+                    suggestions.push(key);
+                    if (suggestions.length >= 10) {
+                        break;
+                    }
+                }
+            }
+
+
+            var suggestionList = document.getElementById("suggestions");
+            suggestionList.innerHTML = "";
+            for (var i = 0; i < suggestions.length; i++) {
+                var suggestion = document.createElement("div");
+                suggestion.innerHTML = suggestions[i];
+                suggestion.onclick = function () {
+                    document.getElementById("searchInput").value = this.innerHTML;
+                    suggestionList.innerHTML = "";
+                    $('#suggestions').hide();
+                };
+                suggestionList.appendChild(suggestion);
+            }
+        }
+ 
+        function verify_stock() {
+            var input = document.getElementById("searchInput").value;
+            console.log(input)
+            if (!keyword.includes(input)) {
+                alert('Stock not Found...!');
+            }
+        }
+
+        $(document).ready(function () {
+            $('#searchInput').on('keyup', function () {
+                if ($(this).val().length > 0) {
+                    $('#suggestions').show();
+                } else {
+                    $('#suggestions').hide();
+                }
+            });
+        });
+
+
+    </script>
+
+    <style>
+
+        #searchInput {
+            position: relative;
+            display: inline-block;
+        }
+
+        #suggestions {
+            background-color: #333333;
+            border-bottom: 1px solid #000000;
+            list-style-type: none;
+            margin: 0;
+            min-width: 250px;
+            position: absolute;
+            top: 32px;
+            z-index: 100;
+            padding-left: 0;
+            height: 200px;
+            overflow-y: scroll;
+            display: none;
+
+        }
+
+        #suggestions div {
+            cursor: pointer;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        #suggestions div:hover {
+            background-color: #ddd;
+        }
+
+        .col1 {
+            flex: 1;
+            /* additionally, equal width */
+
+            padding: 1em;
+            border: solid;
+        }
+
+        body {
+            padding-top: 60px;
+        }
+    </style>
+
+    <!-- Navbar -->
+    <nav style="float: right;" class="navbar fixed-top navbar-expand-lg bg-dark navbar-dark py-3">
+        <div class="container">
+            <a href="/" class="navbar-brand">Stock Market Price Prediction</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navmenu">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link hide-border bg-dark" data-bs-toggle="modal"
+                            data-bs-target="#written">Creators</button>
+                    </li>
+                    <li class="nav-item">
+                        <a href="update" class="nav-link">Update DataBase</a>
+                    </li>
+                    <li>
+                        <section class="bg-dark text-light">
+                            <form action="live" method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="d-md-flex justify-content-between align-items-center">
+                                    <div class="input-group">
+                                        <input type="text" id="searchInput" name="searchInput"
+                                            onkeyup="showSuggestions(this.value)" class="form-control"
+                                            placeholder="Enter Stock..." />
+                                        <div id="suggestions"></div>
+                                        <input class="btn btn-dark btn-md" onclick="verify_stock();" type="submit">
+                                    </div>
+                                </div>
+                            </form>
+                        </section>
+                    </li>
+                    <li class="nav-item">
+                        <button onclick="darkmode()" class="nav-link bg-dark hide-border"> Dark mode </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Showcase-->
+    <section class="bg-black text-light p-5 p-lg-0 pt-lg-5 text-center text-sm-start">
+        <div class="container">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <div>
+                    <h1>Know About <span class="text-warning">
+                            Stock Market
+                        </span></h1>
+                    <hr />
+                    <p class="lead my-4">
+                        Here You will find detailed analysis of the company stocks,
+                        It's Performance over the Years and It's Future Predicted Prices.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="bg-primary text-light p-5">
+        <div class="container">
+            <div class="d-md-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-3 mb-md-0">Sign up For our Newsletter</h3>
+                    <h5 class="py-2">Get the latest updates right away </h5>
+                </div>
+                <div class="input-group news-input">
+                    <input type="text" class="form-control" placeholder="Enter your email" />
+                    <button class="btn btn-dark btn-lg" type="button">Subscribe</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Company Data -->
+    <div style="display: flex;">
+        <section class="p-4 p-lg-0 pt-lg-3 text-center text-sm-start col1" style="background-color:cornsilk;">
+            <form action="live" method="post" enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+                <div class="col card-body text-center">
+                    <div class="col">
+                        <div class="row-md">
+                            <h3>Select Company</h3>
+                        </div>
+                        <div class="row-md">
+                            <select name="company" id="company" class="drop_downsize" style="text-align: center">
+                                <option selected disabled value="0">---None---</option>
+                                <option value='HDFC.NS'> HDFC </option>
+                                <option value='RELIANCE.NS'> RELIANCE </option>
+                                <option value='TCS.NS'> TCS </option>
+                                <option value='SBIN.NS'> SBI </option>
+                                <option value='TATAMOTORS.NS'> TATA MOTORS </option>
+                            </select>
+                        </div>
+                        <br>
+                        <div class="row-md column">
+                            <button type="submit" class="btn btn-primary btn-lg">Get Data</button>
+                        </div>
+                    </div>
+
+            </form>
+        </section>
+
+        <!-- Company Data -->
+        <section class="p-4 p-lg-0 pt-lg-3 text-center text-sm-start col1" style="background-color:cornsilk;">
+            <form action="live" method="post" enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+                <div class="row card-body text-center">
+                    <h3>Choose Period</h3>
+                    <div class="row">
+                        <div class="col-md">
+                            <h3>Start Date</h3>
+                        </div>
+                        <div class="col-md drop_downsize">
+                            <input type="date" id="start" name="start">
+                        </div>
+                        <div class="col-md">
+                            <h3>End Date</h3>
+                        </div>
+                        <div class="col-md drop_downsize">
+                            <input type="date" id="end" name="end">
+                        </div>
+                    </div>
+                    <p></p>
+                    <div class="col-md column">
+                        <button type="submit" class="btn btn-primary btn-lg">Get Data</button>
+                    </div>
+
+            </form>
+        </section>
+    </div>
+
+
+    <!-- Graphs -->
+
+    <div style="width: 100%;">
+        <h3>{{value}} Stock Trends Over the Years</h3>
+        {{ linegraph | safe}}
+    </div>
+
+    <div style="width: 100%;">
+        <h3>{{value}} Price Today </h3>
+        {{ live | safe}}
+    </div>
+
+    <!-- Company Info -->
+    <section id="company" class="p-1 back">
+        <div class="container">
+            {% if static_data %}
+            <table width="100%">
+                <div>
+                    <p></p>
+                    <tr>
+                        <td>
+                            <h3>Company Info</h3>
+                        </td>
+                        <td style="padding-left: 50%;"><img src="{{static_data.logo_url}}"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <hr>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><b>Company</b></td>
+                        <td><b>{{static_data.longName}}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>About</b></td>
+                        <td>{{static_data.longBusinessSummary}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Symbol</b></td>
+                        <td><b>{{static_data.symbol}}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Sector</b></td>
+                        <td><b>{{static_data.sector}}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Website</b></td>
+                        <td><b><a href="{{static_data.website}}">{{static_data.website}}</a></b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Total Revenue</b></td>
+                        <td><b>{{ symbol }}{{static_data.totalRevenue }}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Employees</b></td>
+                        <td><b>{{static_data.fullTimeEmployees }}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Address</b></td>
+                        <td><b>{{static_data.address2}}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Fax</b></td>
+                        <td><b>{{static_data.fax}}</b></td>
+                    </tr>
+                </div>
+                <div>
+            </table>
+            {% endif %}
+            <p> </p>
+            <p> </p>
+            <table width="100%">
+                <h3>Statistics</h3>
+                <hr>
+                <tr>
+                    <td><b>Previous Close</b></td>
+                    <td><b>{{ symbol }}</b><b>{{prices.previousClose }}</b></td>
+                    <td><b>Market Cap</b></td>
+                    <td><b>{{ symbol }}{{prices.marketCap }}</b></td>
+                </tr>
+                <tr>
+                    <td><b>Shares</b></td>
+                    <td><b>{{ symbol }}{{prices.shares }}</b></td>
+                    <td><b>Exchange</b></td>
+                    <td><b>{{prices.exchange }}</b></td>
+                </tr>
+                <tr>
+                    <td><b>Open</b></td>
+                    <td><b>{{ symbol }}{{prices.open }}</b></td>
+                    <td><b>52Week High</b></td>
+                    <td><b>{{ symbol }}{{prices.yearHigh }}</b></td>
+                </tr>
+                <tr>
+                    <td><b>High</b></td>
+                    <td><b>{{ symbol }}{{prices.dayHigh }}</b></td>
+                    <td><b>52Week Low</b></td>
+                    <td><b>{{ symbol }}{{prices.yearLow }}</b></td>
+                </tr>
+                <tr>
+                    <td><b>Low</b></td>
+                    <td><b>{{ symbol }}{{prices.dayLow }}</b></td>
+                    <td><b>52Week Change</b></td>
+                    <td><b>{{prices.yearChange }}%</b></td>
+                </tr>
+        </div>
+        </table>
+        </div>
+        <p> </p>
+    </section>
+
+
+
+    <!-- Copyright Section-->
+    <section id="learn" class="p-1 bg-secondary text-light">
+        <div class="container">
+            <div class="row align-items-center justify-content-between">
+                <div class="col-md p-3">
+                    <h2>Knowledge Base</h2>
+                    <p class="lead">
+                        My Info<br>
+                        Who We Are<br>
+                        Contact Us<br>
+                        What We Do<br>
+                        Helpful Links<br>
+                    </p>
+                    <address>
+                        Contact : <a href="tel:9390858915">Call now</a> <br>
+                        Email ID : <a href="mailto:hemanth680684@gmail.com?Subject=Hello%20again">Send Mail</a>
+                    </address>
+                </div>
+                <div class="col-md">
+                    <img src="{% static 'image/footer.svg' %}" alt="" class="img-fluid w-100">
+                </div>
+            </div>
+        </div>
+        <p class="lead text-center">
+            Terms of Service | Privacy Policy | Sitemap | All Rights Reserved.
+        </p>
+    </section>
+
+    <!-- Footer Section -->
+    <footer class="pb-3 bg-dark text-light text-center position-relative">
+        <div class="container">
+            <p class="lead">
+                Copyright &copy; 2021 Online Library
+            </p>
+            <a href="#" class="position-absolute bottom-0 end-0 p-5">
+                <i class="bi bi-arrow-up-circle h1"></i>
+            </a>
+        </div>
+    </footer>
+
+
+    <!-- Modal -->
+
+    <!-- For Creators -->
+    <div class="modal fade" id="written" tabindex="-1" aria-labelledby="writtenLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel"> Project Creators </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <center>
+                            *-*-*-*-*-*-*-*-*-*-<b style="color: firebrick;">Batch - 3-B</b>-*-*-*-*-*-*-*-*-*-*<br><br>
+                            <b style="color: firebrick;">Project Name : Stock Market Price Prediction</b><br><br>
+                            19331A0573 : Kantubhukta Hemanth <br>
+                            <a href="tel:9390858915"> Mobile No. : 9390858915 </a><br>
+                            G-Mail : <a
+                                href="mailto:hemanth680684@gmail.com?Subject=Hello%20Hemanth">hemanth680684@gmail.com</a>
+                        </center>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" form="master" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>

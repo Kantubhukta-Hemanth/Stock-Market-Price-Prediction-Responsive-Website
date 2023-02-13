@@ -25,17 +25,17 @@
     background-position: center center;
     max-width: 100%;
     background-repeat: no-repeat;
-    
+
 }
 
 .align_right {
     text-align: right;
     font-family: Georgia, 'Times New Roman', Times, serif;
     font-style: oblique;
-    color:firebrick;
+    color: firebrick;
 }
 
 .align_center {
-        padding:0.3em;
-        text-align: center;
+    padding: 0.3em;
+    text-align: center;
 }

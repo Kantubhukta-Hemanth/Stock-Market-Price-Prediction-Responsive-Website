@@ -47,7 +47,7 @@
     <!-- Navbar -->
     <nav style="float: right;" class="navbar fixed-top navbar-expand-lg bg-dark navbar-dark py-3">
         <div class="container">
-            <a href="index" class="navbar-brand">Stock Market Price Prediction</a>
+            <a href="/" class="navbar-brand">Stock Market Price Prediction</a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
                 <span class="navbar-toggler-icon"></span>
@@ -56,7 +56,7 @@
             <div class="collapse navbar-collapse" id="navmenu">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a href="" class="nav-link">Home</a>
+                        <a href="/" class="nav-link">Home</a>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link hide-border bg-dark" data-bs-toggle="modal"
@@ -64,6 +64,9 @@
                     </li>
                     <li class="nav-item">
                         <a href="update" class="nav-link">Update DataBase</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="live" class="nav-link">Markets</a>
                     </li>
                     <li class="nav-item">
                         <button onclick="darkmode()" class="nav-link bg-dark hide-border"> Dark mode </button>
@@ -165,7 +168,7 @@
     <!-- Company Info -->
     <section id="company" class="p-1 back">
         <div class="container">
-            {% if data %}
+            {% if static_data %}
             <table width="100%">
                 <div>
                     <p></p>
@@ -173,7 +176,7 @@
                         <td>
                             <h3>Company Info</h3>
                         </td>
-                        <td style="padding-left: 50%;"><img src="{{data.logo_url}}"></td>
+                        <td style="padding-left: 50%;"><img src="{{static_data.logo_url}}"></td>
                     </tr>
                     <tr>
                         <td colspan="2">
@@ -182,35 +185,39 @@
                     </tr>
                     <tr>
                         <td><b>Company</b></td>
-                        <td><b>{{data.longName}}</b></td>
+                        <td><b>{{static_data.longName}}</b></td>
                     </tr>
                     <tr>
-                        <td><b>Sumbol</b></td>
-                        <td><b>{{data.symbol}}</b></td>
+                        <td><b>About</b></td>
+                        <td>{{static_data.longBusinessSummary}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Symbol</b></td>
+                        <td><b>{{static_data.symbol}}</b></td>
                     </tr>
                     <tr>
                         <td><b>Sector</b></td>
-                        <td><b>{{data.sector}}</b></td>
+                        <td><b>{{static_data.sector}}</b></td>
                     </tr>
                     <tr>
                         <td><b>Website</b></td>
-                        <td><b><a href="{{data.website}}">{{data.website}}</a></b></td>
+                        <td><b><a href="{{static_data.website}}">{{static_data.website}}</a></b></td>
                     </tr>
                     <tr>
                         <td><b>Total Revenue</b></td>
-                        <td><b>₹{{data.totalRevenue }}</b></td>
+                        <td><b>₹{{static_data.totalRevenue }}</b></td>
                     </tr>
                     <tr>
                         <td><b>Employees</b></td>
-                        <td><b>{{data.fullTimeEmployees }}</b></td>
+                        <td><b>{{static_data.fullTimeEmployees }}</b></td>
                     </tr>
                     <tr>
                         <td><b>Address</b></td>
-                        <td><b>{{data.address2}}</b></td>
+                        <td><b>{{static_data.address2}}</b></td>
                     </tr>
                     <tr>
                         <td><b>Fax</b></td>
-                        <td><b>{{data.fax}}</b></td>
+                        <td><b>{{static_data.fax}}</b></td>
                     </tr>
                 </div>
                 <div>
@@ -222,44 +229,33 @@
                 <hr>
                 <tr>
                     <td><b>Previous Close</b></td>
-                    <td><b>₹{{data.previousClose }}</b></td>
-                    <td><b>Daily Volume</b></td>
-                    <td><b>{{data.volume }}</b></td>
+                    <td><b>₹{{prices.previousClose }}</b></td>
+                    <td><b>Market Cap</b></td>
+                    <td><b>₹{{prices.marketCap }}</b></td>
                 </tr>
                 <tr>
-                    <td><b>Price</b></td>
-                    <td><b>₹{{data.currentPrice }}</b></td>
-                    <td><b>50Day Average</b></td>
-                    <td><b>₹{{data.fiftyDayAverage }}</b></td>
+                    <td><b>Shares</b></td>
+                    <td><b>₹{{prices.shares }}</b></td>
+                    <td><b>Exchange</b></td>
+                    <td><b>{{prices.exchange }}</b></td>
                 </tr>
                 <tr>
                     <td><b>Open</b></td>
-                    <td><b>₹{{data.open }}</b></td>
-                    <td><b>Revenue Growth</b></td>
-                    <td><b>{{data.revenueGrowth }}%</b></td>
+                    <td><b>₹{{prices.open }}</b></td>
+                    <td><b>52Week High</b></td>
+                    <td><b>₹{{prices.yearHigh }}</b></td>
                 </tr>
                 <tr>
                     <td><b>High</b></td>
-                    <td><b>₹{{data.dayHigh }}</b></td>
-                    <td><b>52Week High</b></td>
-                    <td><b>₹{{data.fiftyTwoWeekHigh }}</b></td>
+                    <td><b>₹{{prices.dayHigh }}</b></td>
+                    <td><b>52Week Low</b></td>
+                    <td><b>₹{{prices.yearLow }}</b></td>
                 </tr>
                 <tr>
                     <td><b>Low</b></td>
-                    <td><b>₹{{data.dayLow }}</b></td>
-                    <td><b>52Week Low</b></td>
-                    <td><b>₹{{data.fiftyTwoWeekLow }}</b></td>
-                </tr>
-                <tr>
-                    <td><b>Market Cap</b></td>
-                    <td><b>₹{{data.marketCap }}</b></td>
+                    <td><b>₹{{prices.dayLow }}</b></td>
                     <td><b>52Week Change</b></td>
-                    <td><b>{{data.52WeekChange }}</b></td>
-                </tr>
-                <tr>
-                    <td>
-                        <p></p>
-                    </td>
+                    <td><b>{{prices.yearChange }}%</b></td>
                 </tr>
         </div>
         </table>

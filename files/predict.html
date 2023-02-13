@@ -5,12 +5,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="60">
+    <!-- <meta http-equiv="refresh" content="60"> -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
     <!-- <link rel="stylesheet" href="style.css"> -->
     <title>Stock Market Price Prediction</title>
     <script src="{% static 'js/javascript.js' %}" language="javascript"></script>
@@ -18,6 +19,60 @@
 </head>
 
 <body>
+
+    <script>
+        var keyword = JSON.parse('{{ keywords | safe }}');
+
+        function showSuggestions() {
+            //var tickers = JSON.parse("{{ tickers | safe }}");
+            var input = document.getElementById("searchInput").value;
+            suggestions = [];
+
+            for (var i = 0; i < keyword.length; i++) {
+                key = keyword[i]
+                if (key.toLowerCase().includes(input.toLowerCase())) {
+
+                    suggestions.push(key);
+                    if (suggestions.length >= 10) {
+                        break;
+                    }
+                }
+            }
+
+
+            var suggestionList = document.getElementById("suggestions");
+            suggestionList.innerHTML = "";
+            for (var i = 0; i < suggestions.length; i++) {
+                var suggestion = document.createElement("div");
+                suggestion.innerHTML = suggestions[i];
+                suggestion.onclick = function () {
+                    document.getElementById("searchInput").value = this.innerHTML;
+                    suggestionList.innerHTML = "";
+                    $('#suggestions').hide();
+                };
+                suggestionList.appendChild(suggestion);
+            }
+        }
+
+        function verify_stock() {
+            var input = document.getElementById("searchInput").value;
+            console.log(input)
+            if (!keyword.includes(input)) {
+                alert('Stock not Found...!');
+            }
+        }
+
+        $(document).ready(function () {
+            $('#searchInput').on('keyup', function () {
+                if ($(this).val().length > 0) {
+                    $('#suggestions').show();
+                } else {
+                    $('#suggestions').hide();
+                }
+            });
+        });
+
+    </script>
 
     <style>
         .beta {
@@ -43,12 +98,44 @@
         body {
             padding-top: 60px;
         }
+
+        #searchInput {
+            position: relative;
+            display: inline-block;
+        }
+
+        #suggestions {
+            background-color: #333333;
+            border-bottom: 1px solid #000000;
+            list-style-type: none;
+            margin: 0;
+            min-width: 250px;
+            position: absolute;
+            top: 32px;
+            z-index: 100;
+            padding-left: 0;
+            height: 200px;
+            overflow-y: scroll;
+            display: none;
+
+        }
+
+        #suggestions div {
+            cursor: pointer;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        #suggestions div:hover {
+            background-color: #ddd;
+        }
     </style>
 
     <!-- Navbar -->
     <nav style="float: right;" class="navbar fixed-top navbar-expand-lg bg-dark navbar-dark py-3">
         <div class="container">
-            <a href="index" class="navbar-brand">Stock Market Price Prediction</a>
+            <a href="/" class="navbar-brand">Stock Market Price Prediction</a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
                 <span class="navbar-toggler-icon"></span>
@@ -57,7 +144,7 @@
             <div class="collapse navbar-collapse" id="navmenu">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a href="" class="nav-link">Home</a>
+                        <a href="/" class="nav-link">Home</a>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link hide-border bg-dark" data-bs-toggle="modal"
@@ -65,6 +152,25 @@
                     </li>
                     <li class="nav-item">
                         <a href="update" class="nav-link">Update DataBase</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="live" class="nav-link">Markets</a>
+                    </li>
+                    <li>
+                        <section class="bg-dark text-light">
+                            <form action="live" method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="d-md-flex justify-content-between align-items-center">
+                                    <div class="input-group">
+                                        <input type="text" id="searchInput" name="searchInput"
+                                            onkeyup="showSuggestions(this.value)" class="form-control"
+                                            placeholder="Enter Stock..." />
+                                        <div id="suggestions"></div>
+                                        <input class="btn btn-dark btn-md" onclick="verify_stock();" type="submit">
+                                    </div>
+                                </div>
+                            </form>
+                        </section>
                     </li>
                     <li class="nav-item">
                         <button onclick="darkmode()" class="nav-link bg-dark hide-border"> Dark mode </button>
@@ -166,7 +272,7 @@
     <!-- Company Info -->
     <section id="company" class="p-1 back">
         <div class="container">
-            {% if data %}
+            {% if static_data %}
             <table width="100%">
                 <div>
                     <p></p>
@@ -174,7 +280,7 @@
                         <td>
                             <h3>Company Info</h3>
                         </td>
-                        <td style="padding-left: 50%;"><img src="{{data.logo_url}}"></td>
+                        <td style="padding-left: 50%;"><img src="{{static_data.logo_url}}"></td>
                     </tr>
                     <tr>
                         <td colspan="2">
@@ -183,35 +289,39 @@
                     </tr>
                     <tr>
                         <td><b>Company</b></td>
-                        <td><b>{{data.longName}}</b></td>
+                        <td><b>{{static_data.longName}}</b></td>
                     </tr>
                     <tr>
-                        <td><b>Sumbol</b></td>
-                        <td><b>{{data.symbol}}</b></td>
+                        <td><b>About</b></td>
+                        <td>{{static_data.longBusinessSummary}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Symbol</b></td>
+                        <td><b>{{static_data.symbol}}</b></td>
                     </tr>
                     <tr>
                         <td><b>Sector</b></td>
-                        <td><b>{{data.sector}}</b></td>
+                        <td><b>{{static_data.sector}}</b></td>
                     </tr>
                     <tr>
                         <td><b>Website</b></td>
-                        <td><b><a href="{{data.website}}">{{data.website}}</a></b></td>
+                        <td><b><a href="{{static_data.website}}">{{static_data.website}}</a></b></td>
                     </tr>
                     <tr>
                         <td><b>Total Revenue</b></td>
-                        <td><b>₹{{data.totalRevenue }}</b></td>
+                        <td><b>₹{{static_data.totalRevenue }}</b></td>
                     </tr>
                     <tr>
                         <td><b>Employees</b></td>
-                        <td><b>{{data.fullTimeEmployees }}</b></td>
+                        <td><b>{{static_data.fullTimeEmployees }}</b></td>
                     </tr>
                     <tr>
                         <td><b>Address</b></td>
-                        <td><b>{{data.address2}}</b></td>
+                        <td><b>{{static_data.address2}}</b></td>
                     </tr>
                     <tr>
                         <td><b>Fax</b></td>
-                        <td><b>{{data.fax}}</b></td>
+                        <td><b>{{static_data.fax}}</b></td>
                     </tr>
                 </div>
                 <div>
@@ -223,44 +333,33 @@
                 <hr>
                 <tr>
                     <td><b>Previous Close</b></td>
-                    <td><b>₹{{data.previousClose }}</b></td>
-                    <td><b>Daily Volume</b></td>
-                    <td><b>{{data.volume }}</b></td>
+                    <td><b>₹{{prices.previousClose }}</b></td>
+                    <td><b>Market Cap</b></td>
+                    <td><b>₹{{prices.marketCap }}</b></td>
                 </tr>
                 <tr>
-                    <td><b>Price</b></td>
-                    <td><b>₹{{data.currentPrice }}</b></td>
-                    <td><b>50Day Average</b></td>
-                    <td><b>₹{{data.fiftyDayAverage }}</b></td>
+                    <td><b>Shares</b></td>
+                    <td><b>₹{{prices.shares }}</b></td>
+                    <td><b>Exchange</b></td>
+                    <td><b>{{prices.exchange }}</b></td>
                 </tr>
                 <tr>
                     <td><b>Open</b></td>
-                    <td><b>₹{{data.open }}</b></td>
-                    <td><b>Revenue Growth</b></td>
-                    <td><b>{{data.revenueGrowth }}%</b></td>
+                    <td><b>₹{{prices.open }}</b></td>
+                    <td><b>52Week High</b></td>
+                    <td><b>₹{{prices.yearHigh }}</b></td>
                 </tr>
                 <tr>
                     <td><b>High</b></td>
-                    <td><b>₹{{data.dayHigh }}</b></td>
-                    <td><b>52Week High</b></td>
-                    <td><b>₹{{data.fiftyTwoWeekHigh }}</b></td>
+                    <td><b>₹{{prices.dayHigh }}</b></td>
+                    <td><b>52Week Low</b></td>
+                    <td><b>₹{{prices.yearLow }}</b></td>
                 </tr>
                 <tr>
                     <td><b>Low</b></td>
-                    <td><b>₹{{data.dayLow }}</b></td>
-                    <td><b>52Week Low</b></td>
-                    <td><b>₹{{data.fiftyTwoWeekLow }}</b></td>
-                </tr>
-                <tr>
-                    <td><b>Market Cap</b></td>
-                    <td><b>₹{{data.marketCap }}</b></td>
+                    <td><b>₹{{prices.dayLow }}</b></td>
                     <td><b>52Week Change</b></td>
-                    <td><b>{{data.52WeekChange }}</b></td>
-                </tr>
-                <tr>
-                    <td>
-                        <p></p>
-                    </td>
+                    <td><b>{{prices.yearChange }}%</b></td>
                 </tr>
         </div>
         </table>
@@ -375,7 +474,8 @@
                             <b style="color: firebrick;">Project Name : Stock Market Price Prediction</b><br><br>
                             19331A0573 : Kantubhukta Hemanth <br>
                             <a href="tel:9390858915"> Mobile No. : 9390858915 </a><br>
-                            G-Mail : <a href="mailto:hemanth680684@gmail.com?Subject=Hello%20Hemanth">hemanth680684@gmail.com</a>
+                            G-Mail : <a
+                                href="mailto:hemanth680684@gmail.com?Subject=Hello%20Hemanth">hemanth680684@gmail.com</a>
                         </center>
                     </p>
                 </div>
