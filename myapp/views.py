@@ -1,10 +1,13 @@
 from django.shortcuts import redirect, render
-from django.template import RequestContext
+from django.contrib.auth.models import User, auth
+from django.utils import timezone
+from django.contrib import messages
+from django.db import IntegrityError
+from django.views.decorators.csrf import csrf_exempt
 
 from SMP.settings import BASE_DIR
 from .models import *
 import json
-from django.core.files.storage import FileSystemStorage
 
 import plotly.graph_objects as go
 import plotly
@@ -414,6 +417,7 @@ def predict(request):
         }
     )
 
+@csrf_exempt
 def live(request):
     
     dic, _= livedata()
@@ -425,14 +429,17 @@ def live(request):
     except:
         start = '2022-01-01'
         end = datetime.datetime.now()
-
+    
     try:
-        value = request.POST['searchInput']
+        value = request.POST.get('stockname')
     except:
         try:
-            value = request.POST['company']
+            value = request.POST['searchInput']
         except:
-            value = 'HDFC.NS'
+            try:
+                value = request.POST['company']
+            except:
+                value = 'HDFC.NS'
     finally:
         if 'start' in request.COOKIES and 'end' in request.COOKIES and 'name' in request.COOKIES:
             old_start = request.COOKIES['start'][:10]
@@ -445,7 +452,6 @@ def live(request):
         std_df['Datetime'] = pd.to_datetime(std_df['Date'])
         del std_df['Date']
         std_df = std_df[(std_df['Datetime'] >= start) & (std_df['Datetime'] <= end)]
-        print(value)
     
     if value in tickers:
         file = os.path.join(BASE_DIR , 'static/company_info.csv')
@@ -456,7 +462,9 @@ def live(request):
         data = data[value]
     else:
         data = False
-
+    
+    df = yf.download(tickers=value, period='1d',interval='1m')
+    cur_price = "{:.2f}".format(df.iloc[-1]['Close'])
 
     info = yf.Ticker(value).fast_info
     currency = info['currency']
@@ -466,19 +474,26 @@ def live(request):
 
     file = os.path.join(BASE_DIR , 'static/Tickers_List.xlsx')
 
-    stocks = pd.read_excel(file)
-    names = stocks['Ticker']
+    names = pd.read_excel(file)['Ticker']
     names = json.dumps(names.tolist())
+    username = request.user.username
+
+    try:
+        available = holdings.objects.filter(username=username).filter(stock=value).first().quantity
+    except:
+        available = 0
     
     response = render(request, 'live.html',{
             'company': dic,
             'static_data': data,
             'value': value,
+            'current_price' : cur_price,
             'keywords': names,
             'prices' : info,
             'symbol' : symbol,
             'linegraph': live_graph(std_df, value),
-            'live': live_candlestick(value)
+            'live': live_candlestick(value),
+            'available': available
         }
     )
 
@@ -487,3 +502,157 @@ def live(request):
     response.set_cookie(key='name', value=value)
 
     return response
+
+def register(request):
+    if request.method=='POST':
+        fname = request.POST['fname']
+        lname = request.POST['lname']
+        email = request.POST['email']
+        pw1 = request.POST['pw1']
+        try:
+            user = User.objects.create_user(first_name=fname, password=pw1, last_name=lname, email=email, username=email)
+            # save the new user object to the database
+            user.save()
+            return render(request, 'registered.html', {'title' : 'Success', 'msg': 'User Registered successfully'})
+        except IntegrityError:
+            # handle the integrity error
+            return render(request, 'registered.html', {'title' : 'Warning', 'msg': 'User already exist, Try Logging in instead'})
+    else:
+        return render(request, 'index.html')
+    
+def login(request):
+    if request.method=='POST':
+        email = request.POST['loginemail']
+        pw1 = request.POST['loginpw1']
+        user = auth.authenticate(username=email, password=pw1)
+        if user is not None:
+            auth.login(request, user)
+            return render(request, 'login.html', {'title' : 'Success', 'msg': 'Login Success'})
+        else:
+            return render(request, 'login.html', {'title' : 'Warning', 'msg': 'Invalid Credentials. Create a new one'})
+    else:
+        return render(request, 'index.html')
+
+def logout(request):
+    auth.logout(request)
+    return redirect('/')
+
+
+def buy(request):
+    if request.method=='POST':
+        #stock -> username    stock    buy_quantity    sell_quantity    buy_amount    sell_amount    buy_time    sell_time    buy_price  sell_price    status(buy/sell)
+        #holdings -> username    stock    quantity    buy_amount    avg_buy_price
+
+        try:
+            history = stocks()
+            username = request.user.username
+            stockname = request.COOKIES['name']
+            buy_amount = float(request.POST['buy_amount'])
+            quantity = float(request.POST['buy_quantity'])
+            buy_price = float(request.POST['buy_price'])
+
+
+            history.username = username
+            history.stock = stockname
+            history.buy_quantity = quantity
+            history.buy_amount = buy_amount
+            history.buy_price = buy_price
+            history.buy_time = timezone.now()
+            history.status = True
+            history.save()
+
+            entry = holdings.objects.filter(username=username, stock=stockname)
+            entry = entry.first()
+            hold = holdings()
+            if entry:
+                entry.quantity += quantity
+                entry.buy_amount += buy_amount
+                entry.avg_buy_price = entry.buy_amount/ entry.quantity
+                entry.save()
+
+            else:
+                hold.username = username
+                hold.stock = stockname
+                hold.buy_amount = buy_amount
+                hold.quantity = quantity
+                hold.avg_buy_price = buy_price
+                hold.save()
+            status = True
+        
+        except:
+            status = False
+
+        return render(request, 'buy.html',{
+            'stockname': stockname,
+            'quantity': quantity,
+            'buy_price': buy_price,
+            'buy_amount': buy_amount,
+            'status': status
+        })
+    return render(request, 'index.html')
+
+def sell(request):
+    if request.method=='POST':
+        flag = False
+        try:
+            history = stocks()
+            username = request.user.username
+            stockname = request.COOKIES['name']
+            sell_amount = float(request.POST['sell_amount'])
+            quantity = float(request.POST['sell_quantity'])
+            sell_price = float(request.POST['sell_price'])
+
+            history.username = username
+            history.stock = stockname
+            history.sell_quantity = quantity
+            history.sell_amount = sell_amount
+            history.sell_price = sell_price
+            history.sell_time = timezone.now()
+            history.status = False
+            history.save()
+
+            def precise(num):
+                precision = num*100
+                rem = precision - (precision - int(precision))
+                num = rem / 100
+                return num
+
+
+            entry = holdings.objects.filter(username=username, stock=stockname).first()
+            if entry:
+                if entry.quantity >= quantity:
+                    entry.quantity -= quantity
+                    entry.buy_amount -= sell_amount
+                    if entry.quantity == 0:
+                        entry.avg_buy_price = 0
+                    else:
+                        entry.avg_buy_price = entry.buy_amount/ entry.quantity
+                    entry.quantity = precise(entry.quantity)
+                    entry.buy_amount = precise(entry.buy_amount)
+                    entry.avg_buy_price = precise(entry.avg_buy_price)
+                    entry.save()
+                    status = True
+                else:
+                    flag = True
+        except:
+            status = False
+
+
+    return render(request, 'sell.html',{
+            'stockname': stockname,
+            'quantity': quantity,
+            'sell_price': sell_price,
+            'sell_amount': sell_amount,
+            'status': status,
+            'flag': flag
+        })
+
+
+def profile(request):
+    username = request.user.username
+    entry = holdings.objects.filter(username=username)
+    history = stocks.objects.filter(username=username)
+    return render(request, 'profile.html', {
+        'holdings': entry,
+        'history': history
+    })

@@ -15,6 +15,7 @@
     <title>Stock Market Price Prediction</title>
     <script src="{% static 'js/javascript.js' %}" language="javascript"></script>
     <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 </head>
 
 <body>
@@ -22,7 +23,104 @@
         body {
             padding-top: 60px;
         }
+
+        #regoverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 9999;
+        }
+
+        #registerform {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            z-index: 10000;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        #logoverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 9999;
+        }
+
+        #loginform {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            z-index: 10000;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        input {
+            font-weight: normal;
+            font-size: 22px;
+            width: 250px;
+        }
+
+        body {
+            padding-top: 60px;
+        }
+
+        .div-1 {
+            align-items: center;
+            border-radius: 25px;
+            display: block;
+            margin: auto;
+            padding: 3%;
+        }
+
+        .form-label {
+            float: left;
+        }
+
+        .div-2 {
+            align-items: center;
+            background-color: white;
+            border-radius: 35px;
+            display: block;
+            margin: auto;
+            width: 90%;
+            padding: 5%;
+        }
+
+        .required::after {
+            content: " *";
+            color: red;
+        }
+
+
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
     </style>
+
+
 
     <!-- Navbar -->
     <nav class="navbar fixed-top navbar-expand-lg bg-dark navbar-dark py-3">
@@ -48,6 +146,21 @@
                     <li class="nav-item">
                         <a href="market/live" class="nav-link">Markets</a>
                     </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a href="{% url 'logout' %}" class="nav-link bg-dark hide-border">Logout</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="profile" class="nav-link bg-dark hide-border">Profile</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <button id="registerbutton" class="nav-link bg-dark hide-border">Create Account</button>
+                    </li>
+                    <li class="nav-item">
+                        <button id="loginbutton" class="nav-link bg-dark hide-border">Login</button>
+                    </li>
+                    {% endif %}
                     <li class="nav-item">
                         <button onclick="darkmode()" class="nav-link bg-dark hide-border"> Dark mode </button>
                     </li>
@@ -55,6 +168,7 @@
             </div>
         </div>
     </nav>
+
 
     <!-- Showcase-->
     <section class="bg-black text-light p-5 p-lg-0 pt-lg-5 text-center text-sm-start">
@@ -92,6 +206,99 @@
         </div>
     </section>
 
+
+
+    <div id="regoverlay"></div>
+
+    <!-- Register Form -->
+
+    <div class="container p-5" id="registerform" style="display: none;">
+        <!--card bg-primary-->
+        <div class="card bg-primary div-1">
+            <form action="register" method="post" name="register" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="div-2">
+                    <h2 style="text-align: center; color:mediumvioletred">Registration</h2>
+                    <hr>
+
+                    <div class="row g-2">
+                        <div><label class="form-label">FirstName</label></div>
+                        <div class="col">
+                            <input class="form-control" type="text" required id="fname" name="fname"
+                                placeholder="First name" aria-label="First name">
+                            <div class="col-sm" id="nameerror"></div>
+                        </div>
+                        <div class="col">
+                            <input class="form-control" type="text" required name="lname" placeholder="Last name"
+                                aria-label="Last name">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label">Email</label>
+                        <input class="form-control" type="email" required id="email" name="email">
+                        <div class="col-sm" id="emailerror"></div>
+                    </div>
+
+                    <div>
+                        <label class="form-label">Password</label>
+                        <input class="form-control" onfocus="this.value=''" type="password" id="pw1" required
+                            name="pw1">
+                        <div class="col-sm" id="pw1error"></div>
+                    </div>
+
+                    <div>
+                        <label class="form-label">Confirm Password</label>
+                        <input class="form-control" onfocus="this.value=''" type="password" id="pw2" required
+                            name="pw2">
+                        <div class="col-sm" id="pw2error"></div>
+                    </div>
+
+                    <div class="pt-3 column text-center">
+                        <button type="submit" class="btn btn-primary btn-lg">Create now</button>
+                    </div>
+                    <hr>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+    <div id="logoverlay"></div>
+    <!-- Login Form -->
+
+    <div class="container p-5" id="loginform" style="display: none;">
+        <!--card bg-primary-->
+        <div class="card bg-primary div-1">
+            <form action="login" method="post" name="login" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="div-2">
+                    <h2 style="text-align: center; color:mediumvioletred">Login</h2>
+                    <hr>
+                    <div>
+                        <label class="form-label">Email</label>
+                        <input class="form-control" type="email" required id="loginemail" name="loginemail">
+                        <div class="col-sm" id="emailerror"></div>
+                    </div>
+
+                    <div>
+                        <label class="form-label">Password</label>
+                        <input class="form-control" onfocus="this.value=''" type="password" required name="loginpw1">
+                    </div>
+
+                    <div class="pt-3 column text-center">
+                        <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                    </div>
+                    <hr>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+
     <!-- Learn Sections -->
     <br>
     <br>
@@ -101,36 +308,58 @@
             <div>
                 <h2>Share market basics</h2>
                 <hr>
-                <p style="text-align: justify; text-indent:30px;">Ever wondered what are shares and share markets all
-                    about? Let’s learn share market basics in this section. Each and every one of us has defined goals
-                    in life and have time limits by which we have to attain these goals. For example, you may plan to
-                    study abroad, buy a car, build a home, etc. To achieve these, you need to have a proper financial
-                    planning. By this, I mean investing has to become your habit. Financial assets or share markets
-                    provide high returns and so start investing at a young age and do it regularly for a long period of
+                <p style="text-align: justify; text-indent:30px;">Ever wondered what are shares and share
+                    markets all
+                    about? Let’s learn share market basics in this section. Each and every one of us has
+                    defined goals
+                    in life and have time limits by which we have to attain these goals. For example, you
+                    may plan to
+                    study abroad, buy a car, build a home, etc. To achieve these, you need to have a proper
+                    financial
+                    planning. By this, I mean investing has to become your habit. Financial assets or share
+                    markets
+                    provide high returns and so start investing at a young age and do it regularly for a
+                    long period of
                     time.
 
-                    You can invest in the share market for short term or long term depending on your needs. Based on
-                    your risk appetite, age and dependency, you can be a trader or investor in the share market. As
-                    markets are always associated with risk, you have to read carefully. The various investment options
-                    in the Indian share market today are equity, mutual funds, SIP, IPO, bonds, debentures, derivatives,
+                    You can invest in the share market for short term or long term depending on your needs.
+                    Based on
+                    your risk appetite, age and dependency, you can be a trader or investor in the share
+                    market. As
+                    markets are always associated with risk, you have to read carefully. The various
+                    investment options
+                    in the Indian share market today are equity, mutual funds, SIP, IPO, bonds, debentures,
+                    derivatives,
                     commodity, currency, etc.
                 </p>
-                <h2>How to invest in share market?</h2><hr>
+                <h2>How to invest in share market?</h2>
+                <hr>
                 <h4><u>Demat and Trading Accounts:</u></h4>
-                <p style="text-align: justify; text-indent:30px;">So what you have to do to invest in the share market?
+                <p style="text-align: justify; text-indent:30px;">So what you have to do to invest in the
+                    share market?
                     Firstly, open a demat and trading account
-                    online with a broker and link your bank account with that. Opening demat account is a very simple
-                    and easy process. Once you have your demat and trading account, you can start investing in the
-                    Indian share market. It’s essential for you to be familiar with the stock exchanges and their
-                    functions. Stock exchange is where buying and selling of shares take place. The stock exchanges are
-                    regulated by SEBI (Securities and Exchange Board of India). The 2 important stock exchanges of India
+                    online with a broker and link your bank account with that. Opening demat account is a
+                    very simple
+                    and easy process. Once you have your demat and trading account, you can start investing
+                    in the
+                    Indian share market. It’s essential for you to be familiar with the stock exchanges and
+                    their
+                    functions. Stock exchange is where buying and selling of shares take place. The stock
+                    exchanges are
+                    regulated by SEBI (Securities and Exchange Board of India). The 2 important stock
+                    exchanges of India
                     are NSE (National Stock Exchange) and BSE (Bombay Stock Exchange).
 
-                    As per your goals, choose the particular financial asset for investment. Indian is the one stop
-                    destination for all your needs. If you are more concerned about regular income and preservation of
-                    capital, you can opt for debt instruments likes bonds. If you want capital appreciation and willing
-                    to take risk, equity is the one for you. Before you invest in a share, do a complete study of the
-                    company, its financials, future prospects of growth, etc. Below is what you have to do to achieve
+                    As per your goals, choose the particular financial asset for investment. Indian is the
+                    one stop
+                    destination for all your needs. If you are more concerned about regular income and
+                    preservation of
+                    capital, you can opt for debt instruments likes bonds. If you want capital appreciation
+                    and willing
+                    to take risk, equity is the one for you. Before you invest in a share, do a complete
+                    study of the
+                    company, its financials, future prospects of growth, etc. Below is what you have to do
+                    to achieve
                     your goals:</p>
                 <ol>
                     <li>Define your life goals</li>
@@ -168,13 +397,13 @@
                 <ul>
                     <li>Its always better to do your own research before investing.</li>
                     <li>Its not wise to take decision based on rumours.</li>
-                    <li>Monitor your investments regularly so that you can eliminate the loss making stocks.</li>
+                    <li>Monitor your investments regularly so that you can eliminate the loss making stocks.
+                    </li>
                     <li>Patience is very essential for any investor.</li>
                     <li>Take the help of research experts also before making an investment move.</li>
                     <li>Always be updated with share market news.</li>
                 </ul>
-                <a href="https://zerodha.com/varsity/"
-                    class="btn mt-3 btn-secondary">
+                <a href="https://zerodha.com/varsity/" class="btn mt-3 btn-secondary">
                     <i class="bi bi-chevron-right "> Read More</i>
                 </a>
             </div>
@@ -196,7 +425,8 @@
                     </p>
                     <address>
                         Contact : <a href="tel:9390858915">Call now</a> <br>
-                        Email ID : <a href="mailto:hemanth680684@gmail.com?Subject=Hello%20Hemanth">Send Mail</a>
+                        Email ID : <a href="mailto:hemanth680684@gmail.com?Subject=Hello%20Hemanth">Send
+                            Mail</a>
                     </address>
                 </div>
                 <div class="col-md">
@@ -236,11 +466,14 @@
                 <div class="modal-body">
                     <p>
                         <center>
-                            *-*-*-*-*-*-*-*-*-*-<b style="color: firebrick;">Batch - 3-B</b>-*-*-*-*-*-*-*-*-*-*<br><br>
-                            <b style="color: firebrick;">Project Name : Stock Market Price Prediction</b><br><br>
+                            *-*-*-*-*-*-*-*-*-*-<b style="color: firebrick;">Batch -
+                                3-B</b>-*-*-*-*-*-*-*-*-*-*<br><br>
+                            <b style="color: firebrick;">Project Name : Stock Market Price
+                                Prediction</b><br><br>
                             19331A0573 : Kantubhukta Hemanth <br>
                             <a href="tel:9390858915"> Mobile No. : 9390858915 </a><br>
-                            G-Mail : <a href="mailto:hemanth680684@gmail.com?Subject=Hello%20Hemanth">hemanth680684@gmail.com</a>
+                            G-Mail : <a
+                                href="mailto:hemanth680684@gmail.com?Subject=Hello%20Hemanth">hemanth680684@gmail.com</a>
                         </center>
                     </p>
                 </div>
@@ -255,6 +488,152 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
+    <script>
+        var myregbutton = document.getElementById('registerbutton');
+        var regoverlay = document.getElementById('regoverlay');
+        var myregform = document.getElementById('registerform');
+
+        var mylogbutton = document.getElementById('loginbutton');
+        var logoverlay = document.getElementById('logoverlay');
+        var mylogform = document.getElementById('loginform');
+
+        myregbutton.addEventListener('click', function () {
+            regoverlay.style.display = 'block';
+            myregform.style.display = 'block';
+        });
+
+        regoverlay.addEventListener('click', function () {
+            regoverlay.style.display = 'none';
+            myregform.style.display = 'none';
+        });
+
+        myregform.addEventListener('click', function (event) {
+            event.stopPropagation();
+        });
+
+        mylogbutton.addEventListener('click', function () {
+            logoverlay.style.display = 'block';
+            mylogform.style.display = 'block';
+        });
+
+        logoverlay.addEventListener('click', function () {
+            logoverlay.style.display = 'none';
+            mylogform.style.display = 'none';
+        });
+
+        mylogform.addEventListener('click', function (event) {
+            event.stopPropagation();
+        });
+
+    </script>
+
+    <script>
+        $(document).ready(function (e) {
+            var email_flag = false;
+            var name_flag = false;
+            var iscomplete = false;
+
+            $("#email").change(function () {
+                if (validateEmail()) {
+                    $("#email").css("border", "2px solid green");
+                    $("#emailerror").css("display", "none");
+                    email_flag = true;
+                } else {
+                    $("#email").css("border", "2px solid red");
+                    $("#emailerror").html("<small style='float:left; color: red'>Please enter a valid email</small><br>");
+                    email_flag = false;
+                }
+            });
+
+
+            $("#fname").focusout(function () {
+                if ($("#fname").val() == "") {
+                    $("#nameerror").html("<small style='float:left; color: red'>Name cannot be empty</small><br>");
+                    name_flag = false;
+                } else {
+                    $("#nameerror").css("display", "none");
+                    name_flag = true;
+                }
+            });
+
+            $("#loginemail").change(function () {
+                if (validateloginEmail()) {
+                    $("#loginemail").css("border", "2px solid green");
+                    $("#loginemailerror").css("display", "none");
+
+                } else {
+                    $("#loginemail").css("border", "2px solid red");
+                    $("#loginemailerror").html("<small style='float:left; color: red'>Please enter a valid email</small>");
+                }
+            });
+
+            $("#pw1").change(function () {
+                if (validatePassword()) {
+                    $("#pw1").css("border", "2px solid green");
+                    $("#pw1error").css("display", "none");
+
+                } else {
+                    $("#pw1").css("border", "2px solid red");
+                    $("#pw1error").html("<small style='float:left; color: red'>Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*)</small>");
+                }
+            });
+
+            $("#pw2").change(function () {
+                var pw1 = $("#pw1").val();
+                var pw2 = $("#pw2").val();
+                if (pw1 === pw2) {
+                    $("#pw2").css("border", "2px solid green");
+                    $("#pw2error").css("display", "none");
+
+                } else {
+                    $("#pw2").css("border", "2px solid red");
+                    $("#pw2error").html("<small style='float:left; color: red'>Please confirm your password</small>");
+                }
+            });
+
+
+            function validatePassword(password) {
+                var password = $("#pw1").val();
+                const regex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+                return regex.test(password);
+            }
+
+
+            function validateloginEmail() {
+                // get value of input email
+                var email = $("#loginemail").val();
+                var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/.test(email);
+
+                if (emailReg && email) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            function validateEmail() {
+                // get value of input email
+                var email = $("#email").val();
+                var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/.test(email);
+
+                if (emailReg && email) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            $("#register").submit(function (event) {
+                if (name_flag && email_flag && age_flag) {
+                    return true;
+                } else {
+                    alert("Please fill all details correctly");
+                    event.preventDefault();
+                }
+            });
+
+        });
+    </script>
 </body>
 
 </html>

@@ -51,7 +51,7 @@
                 suggestionList.appendChild(suggestion);
             }
         }
- 
+
         function verify_stock() {
             var input = document.getElementById("searchInput").value;
             console.log(input)
@@ -74,7 +74,6 @@
     </script>
 
     <style>
-
         #searchInput {
             position: relative;
             display: inline-block;
@@ -117,6 +116,91 @@
 
         body {
             padding-top: 60px;
+        }
+
+        #buyoverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 9999;
+        }
+
+        #buyform {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            z-index: 10000;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        #selloverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 9999;
+        }
+
+        #sellform {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            z-index: 10000;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .div-1 {
+            align-items: center;
+            border-radius: 25px;
+            display: block;
+            margin: auto;
+            padding: 3%;
+        }
+
+        .form-label {
+            float: left;
+        }
+
+        .div-2 {
+            align-items: center;
+            background-color: white;
+            border-radius: 35px;
+            display: block;
+            margin: auto;
+            width: 90%;
+            padding: 5%;
+        }
+
+        .required::after {
+            content: " *";
+            color: red;
+        }
+
+
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
         }
     </style>
 
@@ -261,6 +345,104 @@
         </section>
     </div>
 
+    <div id="buyoverlay"></div>
+
+    <!-- Buy Form -->
+
+    <div class="container p-5" id="buyform" style="display: none;">
+        <!--card bg-primary-->
+        <div>
+            <form onsubmit="return checkbuyconfirm();" action="buy" method="post" name="buy"
+                enctype="multipart/form-data">
+                {% csrf_token %}
+                <h2
+                    style="text-align: center; color:#143d59; background-color:#f4b41a;padding:5px;border-radius: 10px;">
+                    Buy {{ value }}</h2>
+                <hr>
+
+                <div class="row g-2">
+                    <div class="col">
+                        <div><label class="form-label">Buy Price</label></div>
+                        <div class="input-group">
+                            <input class="form-control" type="text" readonly id="buy_price" name="buy_price"
+                                value="{{ current_price }}">
+                            <div class="input-group-text">{{ prices.currency }}</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div><label class="form-label">Amount</label></div>
+                        <div class="input-group">
+                            <input class="form-control" type="text" id="buy_amount" name="buy_amount"
+                                placeholder="Enter amount in INR">
+                            <div class="input-group-text">{{ prices.currency }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="form-label">Quantity</label>
+                    <input class="form-control" type="text" required id="buy_quantity" name="buy_quantity">
+                </div>
+
+                <div class="pt-3 column text-center">
+                    <button type="submit" class="btn btn-primary btn-lg">Place order</button>
+                </div>
+                <hr>
+            </form>
+        </div>
+    </div>
+
+
+
+    <div id="selloverlay"></div>
+    <!-- Sell Form -->
+
+    <div class="container p-5" id="sellform" style="display: none;">
+        <!--card bg-primary-->
+        <div>
+            <form onsubmit="return checkavailability();" action="sell" method="post" name="sell"
+                enctype="multipart/form-data">
+                {% csrf_token %}
+                <h2
+                    style="text-align: center; color:#143d59; background-color:#f4b41a;padding:5px;border-radius: 10px;">
+                    Sell {{ value }}</h2>
+                <hr>
+                <div class="row g-2">
+                    <div class="col">
+                        <div><label class="form-label">Sell Price</label></div>
+                        <div class="input-group">
+                            <input class="form-control" type="text" readonly id="sell_price" name="sell_price"
+                                value="{{ current_price }}">
+                            <div class="input-group-text">{{ prices.currency }}</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div><label class="form-label">Available</label></div>
+                        <div class="input-group">
+                            <input class="form-control" type="text" readonly id="available" name="available"
+                                value="{{ available }}">
+                            <div class="input-group-text">{{ value }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="form-label">Quantity</label>
+                    <input class="form-control" type="text" required id="sell_quantity" name="sell_quantity">
+                </div>
+
+                <div>
+                    <label class="form-label">Amount</label>
+                    <input class="form-control" type="text" required id="sell_amount" name="sell_amount">
+                </div>
+
+                <div class="pt-3 column text-center">
+                    <button type="submit" class="btn btn-primary btn-lg">Sell now</button>
+                </div>
+                <hr>
+            </form>
+        </div>
+    </div>
 
     <!-- Graphs -->
 
@@ -273,6 +455,27 @@
         <h3>{{value}} Price Today </h3>
         {{ live | safe}}
     </div>
+
+    <!-- Trade Options -->
+
+    <section class="p-4 p-lg-0 pt-lg-3 text-center text-sm-start col1" style="background-color:cornsilk;">
+        <div class="row card-body text-center">
+            <h3>Trade Options</h3>
+            <hr>
+            <div class="row" style="display:flex; margin:auto">
+                <h3 class="col-md">Company : {{ value }}</h3>
+                <h3 class="col-md">Current Price : {{ symbol }} {{ current_price }}</h3>
+            </div>
+            <div class="row d-md-flex" style="display:flex; margin:auto; width:20%">
+                <div class="col-md" style="padding: 20px">
+                    <button id="buybutton" type="submit" class="btn btn-primary btn-lg">Buy</button>
+                </div><br>
+                <div class="col-md" style="padding: 20px">
+                    <button id="sellbutton" type="submit" class="btn btn-primary btn-lg">Sell</button>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Company Info -->
     <section id="company" class="p-1 back">
@@ -450,6 +653,117 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
+    <script>
+        var myregbutton = document.getElementById('buybutton');
+        var buyoverlay = document.getElementById('buyoverlay');
+        var mybuyform = document.getElementById('buyform');
+
+        var mybuybutton = document.getElementById('sellbutton');
+        var selloverlay = document.getElementById('selloverlay');
+        var mysellform = document.getElementById('sellform');
+
+        myregbutton.addEventListener('click', function () {
+            buyoverlay.style.display = 'block';
+            mybuyform.style.display = 'block';
+        });
+
+        buyoverlay.addEventListener('click', function () {
+            buyoverlay.style.display = 'none';
+            mybuyform.style.display = 'none';
+        });
+
+        mybuyform.addEventListener('click', function (event) {
+            event.stopPropagation();
+        });
+
+        mybuybutton.addEventListener('click', function () {
+            selloverlay.style.display = 'block';
+            mysellform.style.display = 'block';
+        });
+
+        selloverlay.addEventListener('click', function () {
+            selloverlay.style.display = 'none';
+            mysellform.style.display = 'none';
+        });
+
+        mysellform.addEventListener('click', function (event) {
+            event.stopPropagation();
+        });
+
+        $("#buy_amount").keyup(function () {
+            var buy_amount = $("#buy_amount").val();
+            var buy_price = $("#buy_price").val();
+            var buy_quantity = $("#buy_quantity").val();
+            var bmi = buy_amount / buy_price;
+            $("#buy_quantity").val(bmi.toFixed(2));
+        });
+
+        $("#sell_quantity").change(function () {
+            var sell_quantity = $("#sell_quantity").val();
+            var sell_price = "{{ current_price }}";
+            var amt = 0;
+            sell_quantity = parseFloat(sell_quantity);
+            var available = $("#available").val();
+            if (sell_quantity > available) {
+                $("#sell_quantity").css("border", "2px solid red");
+
+            } else {
+                var amt = sell_quantity * sell_price;
+                $("#sell_quantity").css("border", "2px solid green");
+            }
+
+            $("#sell_amount").val(amt.toFixed(2));
+        });
+
+        function checkavailability() {
+            var avail = "{{ available }}";
+
+            var quant = document.getElementById('sell_quantity').value;
+
+            avail = parseFloat(avail);
+            quant = parseFloat(quant);
+
+            if (avail <= 0) {
+                alert("Funds Insufficient");
+                return false;
+            }
+            else if (quant <= 0) {
+                alert("Enter suitable quantity to sell");
+                return false;
+
+            }
+            else if (avail < quant) {
+                alert("Not enough funds to sell");
+                return false;
+            }
+            else {
+                var confirmed = window.confirm("Are you sure you want to place the order?");
+                if (confirmed) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+
+        }
+
+        function checkbuyconfirm() {
+            var confirmed = window.confirm("Are you sure you want to place the order?");
+
+            if (confirmed) {
+                return true;
+            }
+            else {
+                return false;
+            }
+
+        }
+
+
+
+
+    </script>
 </body>
 
 </html>

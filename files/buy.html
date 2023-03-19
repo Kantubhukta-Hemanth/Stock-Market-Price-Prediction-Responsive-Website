@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Message</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+        }
+
+        .container {
+            width: 50%;
+            margin: 0 auto;
+            margin-top: 50px;
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0px 0px 15px 0px rgba(18, 136, 247, 0.9);
+            max-width: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            color: #2ecc71;
+            /* green color */
+        }
+
+        h3 {
+            text-align: center;
+            margin-top: 0;
+            color: #ea3d16;
+            /* green color */
+        }
+
+        p {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <style>
+        .btn-container {
+            display: flex;
+            top: 50%;
+            border-radius: 25px;
+            left: 50%;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .btn-container .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .btn-container .btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+
+    {% if status %}
+    <div class="container">
+        <h1> Order Successful </h1>
+        <hr>
+        <h3>Order Details</h3>
+        <div style="display:flex; justify-content: center; align-items: center;">
+            <table width="50%" style="text-align:left">
+
+                <tr>
+                    <td>Company: </td>
+                    <td><span class="name">{{ stockname }}</span></td>
+                </tr>
+                <tr>
+                    <td>Amount: </td>
+                    <td><span class="amount">{{ buy_amount }}</span></td>
+                </tr>
+                <tr>
+                    <td>Price: </td>
+                    <td><span class="price">{{ buy_price }}</span></td>
+                </tr>
+                <tr>
+                    <td>Quantity: </td>
+                    <td><span class="quantity">{{ quantity }}</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="btn-container">
+            <a href="/" class="btn">Home</a>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="container">
+        <h1> Stock Buy Declained/Unsuccessful </h1>
+        <hr>
+        <h3>The Stock you bought may be unlisted or temporarily on hold</h3>
+    </div>
+
+    {% endif %}
+
+
+</body>
+
+</html>
