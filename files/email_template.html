@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Greetings from Stock Tradng : </title>
+</head>
+
+<body>
+    <h4>Dear user,</h4>
+    <p>Here is a Brief description of Today's Market - </p>
+
+    <h3>Top Gainers in Market</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>% Change</th>
+                <th>Volume</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for index, row in gainers_table.iterrows %}
+            <tr>
+                <td>{{ row.Symbol }}</td>
+                <td>{{ row.Name }}</td>
+                <td>{{ row.Change }}</td>
+                <td>{{ row.Volume }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h3>Top Losers in Market</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>% Change</th>
+                <th>Volume</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for index, row in losers_table.iterrows %}
+            <tr>
+                <td>{{ row.Symbol }}</td>
+                <td>{{ row.Name }}</td>
+                <td>{{ row.Change }}</td>
+                <td>{{ row.Volume }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Most Active in Market</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>% Change</th>
+                <th>Volume</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for index, row in active_table.iterrows %}
+            <tr>
+                <td>{{ row.Symbol }}</td>
+                <td>{{ row.Name }}</td>
+                <td>{{ row.Change }}</td>
+                <td>{{ row.Volume }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+
+
+    <p>Thank you for using our service!</p>
+</body>
+
+</html>

@@ -133,3 +133,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATICFILES_STORAGE = 'whitenoise.CompressedManifestStaticFilesStorage'
 django_heroku.settings(locals())
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com' # Replace with your SMTP server address
+EMAIL_PORT = 587 # Replace with your SMTP server port
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'hemanthkantubhukta2232@gmail.com' # Replace with your email address
+EMAIL_HOST_PASSWORD = 'hgzhvcdusjswbute' # Replace with your email password

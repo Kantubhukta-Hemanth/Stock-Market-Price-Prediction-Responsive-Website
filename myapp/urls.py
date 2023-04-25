@@ -19,8 +19,9 @@ urlpatterns = [
     path('logout', views.logout, name='logout'),
     path('profile', views.profile, name='profile'),
     path('market/buy', views.buy, name='buy'),
-    path('market/sell', views.sell, name='sell')
-
+    path('market/sell', views.sell, name='sell'),
+    path('market/send_email', views.send_email, name='send_email'),
+    path('market/subscribe', views.subscribe, name='subscribe')
 ]
 
 

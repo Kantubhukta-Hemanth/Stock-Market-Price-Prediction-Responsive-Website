@@ -1,19 +1,17 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth.models import User, auth
 from django.utils import timezone
-from django.contrib import messages
 from django.db import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
-
+from django.core.mail import send_mail, EmailMultiAlternatives
+from django.template.loader import render_to_string
 from SMP.settings import BASE_DIR
 from .models import *
 import json
-
 import plotly.graph_objects as go
 import plotly
 from plotly.offline import plot
 import plotly.express as px
-
 import numpy as np
 import pandas as pd
 from pandas_datareader import data as web
@@ -33,11 +31,8 @@ def postdata(name):
     end = datetime.datetime.now().strftime('%Y-%m-%d')
     #end = '2019-12-31'
     ########df = data.DataReader(name, 'yahoo', start, end).reset_index()
-
     yf.pdr_override()
-
     df = web.get_data_yahoo([name], start=start, end=end)
-
     df = df.reset_index()
     df['Prev Close'] = df.Close.shift(1)
     df['change'] = df[['Close', 'Prev Close']].pct_change()['Close'] * 100
@@ -50,9 +45,10 @@ def postdata(name):
     df['change'] = df['change'].round(decimals=4)
     return df
 
-
 def index(request):
-    return render(request, 'index.html')
+    response = render(request, 'index.html')
+    response.set_cookie(key='name', value='HDFC.NS')
+    return response
 
 def update(request):
     name = ['HDFC.NS','TCS.NS','RELIANCE.NS','SBIN.NS','TATAMOTORS.NS']
@@ -63,7 +59,6 @@ def update(request):
             df.to_csv(path, index=False)
         except:
             continue
-
     return redirect('/')
 
 def livedata():
@@ -71,7 +66,6 @@ def livedata():
             period='1d', interval='1m', group_by='ticker', threads=True).dropna()
     name = ['HDFC.NS','TCS.NS','RELIANCE.NS','SBIN.NS','TATAMOTORS.NS']
     dic, frame = {}, {}
-
     for col in list(data.columns):
         if frame.get(col[0]) is None:
             frame[col[0]] = {}
@@ -79,22 +73,18 @@ def livedata():
         if col[1]=='Adj Close':
             x = 'Adj_Close'
         frame[col[0]][x] = round(data[col][-1], 2)
-        
     for i in range(3):
         comp = random.choice(name)
         name.remove(comp)
         dic[comp] = frame[comp]['Close']
     return dic, frame
 
-
 def market(request):
     dic, frame = livedata()
     file = os.path.join(BASE_DIR , 'static/Tickers_List.xlsx')
-
     stocks = pd.read_excel(file)
     names = stocks['Ticker']
     names = json.dumps(names.tolist())
-
     return render(request, 'market.html', {
         'company': dic,
         'data' : frame,
@@ -120,9 +110,6 @@ def candlestick(df, value):
         margin=dict(l=50,r=50,b=100,t=100),
         paper_bgcolor="LightSteelBlue",
     )
-
-    
-
     candlestick_div = plot(fig, output_type='div')
     return candlestick_div
 
@@ -132,7 +119,7 @@ def static_linegraph(df):
     return fig
 
 def info(request):
-    dic, frame= livedata()
+    dic, _= livedata()
     file = os.path.join(BASE_DIR , 'static/company_info.csv')
     data = pd.read_csv(file)
     try:
@@ -162,9 +149,7 @@ def info(request):
     del data['index']
     data = data.to_dict()
     data = data[value]
-
     info = yf.Ticker(value).fast_info
-    
     return render(request, 'info.html', {
         'company': dic, 
         'value': value, 
@@ -184,18 +169,13 @@ def pred_graph(df, value):
         xaxis_title="Date", 
         yaxis_title="Price"
     )
-
     fig = plot(fig, output_type='div')
-
     return fig
 
 def live_candlestick(value):
     fig = go.Figure()
-
     yf.pdr_override()
-
     df = yf.download(tickers=value, period='1d',interval='1m')
-
     fig.add_trace(
             go.Candlestick(
                 x = df.index ,
@@ -214,7 +194,6 @@ def live_candlestick(value):
         margin=dict(l=50,r=50,b=100,t=100),
         paper_bgcolor="LightSteelBlue",
     )
-
     fig.update_xaxes(
     rangeslider_visible=False,
     rangeselector=dict(
@@ -227,12 +206,8 @@ def live_candlestick(value):
         ])
     )
 )
-
-    #fig.update_layout(xaxis_rangeslider_visible=False)
-
     candlestick_div = plot(fig, output_type='div')
     return candlestick_div
-
 
 def live_graph(df, value):
     df['MA5'] = df['Close'].rolling(window=5).mean()
@@ -245,7 +220,6 @@ def live_graph(df, value):
                     row_heights=[0.5, 0.15, 0.2, 0.15])
 
     yf.pdr_override()
-
     fig.add_trace(
             go.Candlestick(
                 x = df['Datetime'] ,
@@ -291,7 +265,6 @@ def live_graph(df, value):
             window_slow=26,
             window_fast=12, 
             window_sign=9)
-
     colorsM = ['green' if val >= 0 
             else 'red' for val in macd.macd_diff()]
     fig.add_trace(go.Bar(x=df['Datetime'], 
@@ -309,13 +282,10 @@ def live_graph(df, value):
                             line=dict(color='blue', width=1),
                             name = 'MACD Signal'
                             ), row=4, col=1)
-    
-
     fig.update_yaxes(title_text="Volume", row=2, col=1)
     fig.update_yaxes(title_text="RSI", showgrid=False, row=3, col=1, tickvals=[30, 70])
     fig.update_yaxes(title_text="MACD", showgrid=False, row=4, col=1)
     fig.update_xaxes(title_text="DATE", row=4, col=1)
-
     fig.update_layout(
         title=f"{value} Stock Prices",
         yaxis_title = 'Price',
@@ -323,9 +293,7 @@ def live_graph(df, value):
         margin=dict(l=50,r=50,b=100,t=100),
         paper_bgcolor="LightSteelBlue",
     )
-
     fig.update_layout(xaxis_rangeslider_visible=False)
-
     candlestick_div = plot(fig, output_type='div')
     return candlestick_div
 
@@ -338,18 +306,15 @@ def predict(request):
     df = pd.read_csv(file)
     training_data = pd.DataFrame(df['Close'][0:int(len(df)*0.70)])
     testing_data = pd.DataFrame(df['Close'][int(len(df)*0.70) : int(len(df))])
-    
     testing_dates = pd.DataFrame(df['Date'][int(len(df)*0.70) : int(len(df))])
     scaler = MinMaxScaler(feature_range = (0, 1))
     train_data_array = scaler.fit_transform(training_data)
     x_train = []
     y_train = []
-
     for i in range(100, train_data_array.shape[0]):
         x_train.append(train_data_array[i-100 : i])
         y_train.append(train_data_array[i, 0])
     x_train, y_train = np.array(x_train), np.array(y_train)
-
     path = os.path.join(BASE_DIR, f'static/models/{value[0:-3]}.h5')
     model = load_model(path)
     last_100_days = training_data.tail(100)
@@ -357,12 +322,10 @@ def predict(request):
     input_data = scaler.fit_transform(final_df)
     x_test = []
     y_test = []
-
     for i in range(100, input_data.shape[0]):
         x_test.append(input_data[i-100:i])
         y_test.append(input_data[i, 0])
     x_test, y_test = np.array(x_test), np.array(y_test)
-
     y_predict = model.predict(x_test)
     scale_factor = 1/scaler.scale_
     y_predict = y_predict * scale_factor
@@ -370,10 +333,7 @@ def predict(request):
     y_predict = list(map(float, y_predict))
     testing_dates['y_test'] = y_test.tolist()
     testing_dates['y_predict'] = y_predict
-
-
     dic, _= livedata()
-
     try:
         start = request.POST['start']
         end = request.POST['end']
@@ -386,7 +346,6 @@ def predict(request):
     del data['index']
     data = data.to_dict()
     data = data[value]
-
     file = os.path.join(BASE_DIR, f'static/standard/{value}.csv')
     std_df = pd.read_csv(file)
     start = datetime.datetime.strptime(start, '%Y-%m-%d')
@@ -395,16 +354,12 @@ def predict(request):
 
     live = yf.download(value, period='1d', interval='1m', threads=True)
     live = live.reset_index()
-
     info = yf.Ticker(value).fast_info
-
     file = os.path.join(BASE_DIR , 'static/Tickers_List.xlsx')
 
     stocks = pd.read_excel(file)
     names = stocks['Ticker']
     names = json.dumps(names.tolist())
-
-    
     return render(request, 'predict.html',{
             'company': dic,
             'static_data': data,
@@ -419,31 +374,27 @@ def predict(request):
 
 @csrf_exempt
 def live(request):
-    
     dic, _= livedata()
     tickers = ['HDFC.NS','TCS.NS','RELIANCE.NS','SBIN.NS','TATAMOTORS.NS']
-
     try:
         start = request.POST['start']
         end = request.POST['end']
     except:
         start = '2022-01-01'
         end = datetime.datetime.now()
-    
     try:
         value = request.POST.get('stockname')
-    except:
-        try:
-            value = request.POST['searchInput']
-        except:
+        if value is None:
             try:
-                value = request.POST['company']
+                value = request.POST['searchInput']
             except:
-                value = 'HDFC.NS'
+                try:
+                    value = request.POST['company']
+                except:
+                    value = request.COOKIES['name']
     finally:
         if 'start' in request.COOKIES and 'end' in request.COOKIES and 'name' in request.COOKIES:
             old_start = request.COOKIES['start'][:10]
-            old_end = request.COOKIES['end']
             old_name = request.COOKIES['name']
             if start!=old_start:
                 value = old_name
@@ -452,7 +403,7 @@ def live(request):
         std_df['Datetime'] = pd.to_datetime(std_df['Date'])
         del std_df['Date']
         std_df = std_df[(std_df['Datetime'] >= start) & (std_df['Datetime'] <= end)]
-    
+
     if value in tickers:
         file = os.path.join(BASE_DIR , 'static/company_info.csv')
         data = pd.read_csv(file)
@@ -462,18 +413,15 @@ def live(request):
         data = data[value]
     else:
         data = False
-    
     df = yf.download(tickers=value, period='1d',interval='1m')
     cur_price = "{:.2f}".format(df.iloc[-1]['Close'])
 
     info = yf.Ticker(value).fast_info
     currency = info['currency']
-    
     if currency=='USD': symbol = '$'
     if currency=='INR': symbol = '₹'
 
     file = os.path.join(BASE_DIR , 'static/Tickers_List.xlsx')
-
     names = pd.read_excel(file)['Ticker']
     names = json.dumps(names.tolist())
     username = request.user.username
@@ -482,7 +430,6 @@ def live(request):
         available = holdings.objects.filter(username=username).filter(stock=value).first().quantity
     except:
         available = 0
-    
     response = render(request, 'live.html',{
             'company': dic,
             'static_data': data,
@@ -496,11 +443,9 @@ def live(request):
             'available': available
         }
     )
-
     response.set_cookie(key='start', value=start)
     response.set_cookie(key='end', value=end)
     response.set_cookie(key='name', value=value)
-
     return response
 
 def register(request):
@@ -513,6 +458,17 @@ def register(request):
             user = User.objects.create_user(first_name=fname, password=pw1, last_name=lname, email=email, username=email)
             # save the new user object to the database
             user.save()
+            subject = 'Portal Registration Successful'
+            sender = 'settings.EMAIL_HOST_USER'
+            message = 'Dear User, \n\n You are successfully Registered as a new User. \n Now Start your Journey by buying some assets\n\n\n Happy Trading:)'
+            recipient = email
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=sender,
+                recipient_list=[recipient],
+                fail_silently=False,
+            )
             return render(request, 'registered.html', {'title' : 'Success', 'msg': 'User Registered successfully'})
         except IntegrityError:
             # handle the integrity error
@@ -537,12 +493,8 @@ def logout(request):
     auth.logout(request)
     return redirect('/')
 
-
 def buy(request):
     if request.method=='POST':
-        #stock -> username    stock    buy_quantity    sell_quantity    buy_amount    sell_amount    buy_time    sell_time    buy_price  sell_price    status(buy/sell)
-        #holdings -> username    stock    quantity    buy_amount    avg_buy_price
-
         try:
             history = stocks()
             username = request.user.username
@@ -550,7 +502,6 @@ def buy(request):
             buy_amount = float(request.POST['buy_amount'])
             quantity = float(request.POST['buy_quantity'])
             buy_price = float(request.POST['buy_price'])
-
 
             history.username = username
             history.stock = stockname
@@ -569,7 +520,6 @@ def buy(request):
                 entry.buy_amount += buy_amount
                 entry.avg_buy_price = entry.buy_amount/ entry.quantity
                 entry.save()
-
             else:
                 hold.username = username
                 hold.stock = stockname
@@ -578,10 +528,8 @@ def buy(request):
                 hold.avg_buy_price = buy_price
                 hold.save()
             status = True
-        
         except:
             status = False
-
         return render(request, 'buy.html',{
             'stockname': stockname,
             'quantity': quantity,
@@ -610,14 +558,11 @@ def sell(request):
             history.sell_time = timezone.now()
             history.status = False
             history.save()
-
             def precise(num):
                 precision = num*100
                 rem = precision - (precision - int(precision))
                 num = rem / 100
                 return num
-
-
             entry = holdings.objects.filter(username=username, stock=stockname).first()
             if entry:
                 if entry.quantity >= quantity:
@@ -632,12 +577,9 @@ def sell(request):
                     entry.avg_buy_price = precise(entry.avg_buy_price)
                     entry.save()
                     status = True
-                else:
-                    flag = True
+                else: flag = True
         except:
             status = False
-
-
     return render(request, 'sell.html',{
             'stockname': stockname,
             'quantity': quantity,
@@ -647,7 +589,6 @@ def sell(request):
             'flag': flag
         })
 
-
 def profile(request):
     username = request.user.username
     entry = holdings.objects.filter(username=username)
@@ -656,3 +597,61 @@ def profile(request):
         'holdings': entry,
         'history': history
     })
+
+def send_email(request):
+    if request.method == 'POST':
+        date_str = datetime.date.today().strftime('%d-%m-%Y')
+        date = f'{date_str}.csv'
+        try:    
+            file = os.path.join(BASE_DIR , 'static/email/gainers_'+date)
+            gainers = pd.read_csv(file)
+            file = os.path.join(BASE_DIR , 'static/email/losers_'+date)
+            losers = pd.read_csv(file)
+            file = os.path.join(BASE_DIR , 'static/email/active_'+date)
+            most_active = pd.read_csv(file)     
+        except:
+            gainers = pd.read_html('https://finance.yahoo.com/gainers')[0].loc[:,['Symbol', 'Name', '% Change', 'Volume']].head(5)
+            losers = pd.read_html('https://finance.yahoo.com/losers')[0].loc[:,['Symbol', 'Name', '% Change', 'Volume']].head(5)
+            most_active = pd.read_html('https://finance.yahoo.com/most-active')[0].loc[:,['Symbol', 'Name', '% Change', 'Volume']].head(5)
+            gainers = gainers.rename(columns={'% Change': 'Change'})
+            losers = losers.rename(columns={'% Change': 'Change'})
+            most_active = most_active.rename(columns={'% Change': 'Change'})
+            path = os.path.join(BASE_DIR, 'static/email/gainers_'+date)
+            gainers.to_csv(path, index=False)
+            path = os.path.join(BASE_DIR, 'static/email/losers_'+date)
+            losers.to_csv(path, index=False)
+            path = os.path.join(BASE_DIR, 'static/email/active_'+date)
+            most_active.to_csv(path, index=False)
+        email_template = render_to_string('email_template.html', {'gainers_table': gainers, 'losers_table': losers, 'active_table': most_active})
+        file = os.path.join(BASE_DIR , 'static/subscribers.txt')
+        file = open(file, 'r')
+        data = file.read().split(',')
+        data = list(set(data))
+        subject = 'Daily Market Update'
+        sender = 'settings.EMAIL_HOST_USER'
+        text_content = 'This is an important message.'
+        msg = EmailMultiAlternatives(subject, text_content, sender, data)
+        msg.attach_alternative(email_template, "text/html")
+        msg.send()
+        return redirect('/')
+    return redirect('/')
+
+def subscribe(request):
+    if request.method == 'POST':
+        subscriber = request.POST['subscriber']
+        print(subscriber)
+        file = os.path.join(BASE_DIR , 'static/subscribers.txt')
+        content = ','+subscriber
+        with open(file, "a") as file:
+            file.write(content)
+        file.close()
+        recipient = subscriber
+        send_mail(
+            subject='Newsletter Registration Status',
+            message='Dear User, \n You are successfully subscribed to our Newsletter',
+            from_email='settings.EMAIL_HOST_USER',
+            recipient_list=[recipient],
+            fail_silently=False
+        )
+        return redirect('/')
+    return redirect('/')

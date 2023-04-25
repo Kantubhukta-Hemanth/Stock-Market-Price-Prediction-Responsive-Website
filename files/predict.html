@@ -201,14 +201,20 @@
     <!-- Newsletter -->
     <section class="bg-primary text-light p-5">
         <div class="container">
-            <div class="d-md-flex justify-content-between align-items-center">
-                <div>
+            <div class="d-md-flex justify-content-between align-items-center row">
+                <div class="col">
                     <h3 class="mb-3 mb-md-0">Sign up For our Newsletter</h3>
                     <h5 class="py-2">Get the latest updates right away </h5>
                 </div>
-                <div class="input-group news-input">
-                    <input type="text" class="form-control" placeholder="Enter your email" />
-                    <button class="btn btn-dark btn-lg" type="button">Subscribe</button>
+
+                <div class="col">
+                    <form class="form-inline" method="POST" action="{% url 'subscribe' %}">
+                        {% csrf_token %}
+                        <input type="text" name="subscriber" id="subscriber" class="form-control"
+                            placeholder="Enter your email" />
+                        <div class="col-sm" id="subscribererror"></div>
+                        <button class="btn btn-dark btn-lg" type="submit">Subscribe</button>
+                    </form>
                 </div>
             </div>
         </div>
